@@ -6,14 +6,14 @@
 
 window.APP_CONFIG = {
   // Ej: "https://xyzcompany.supabase.co"
-  SUPABASE_URL: "PON_AQUI_TU_PROJECT_URL",
+  SUPABASE_URL: "https://wvyaaxzeujuupbrqwejt.supabase.co",
 
   // Project Settings → API → Publishable API key
-  SUPABASE_PUBLISHABLE_KEY: "PON_AQUI_TU_PUBLISHABLE_API_KEY",
+  SUPABASE_PUBLISHABLE_KEY: "sb_publishable_5RDUeJNa3xB1IrHPlKcN9Q_gxm5CUak",
 
   // URL de GitHub Pages con slash final
   // Ej: "https://TUUSUARIO.github.io/usp-expedientes/"
-  SITE_URL: "https://TUUSUARIO.github.io/usp-expedientes/",
+  SITE_URL: "https://psiczeus1989.github.io/unacar-usp-expedientes/",
 
   // Archivo de callback dentro del sitio
   CALLBACK_PATH: "callback.html",
