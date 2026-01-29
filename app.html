@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>USP Expedientes · App</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#f6f7fb;margin:0}
+    .wrap{max-width:900px;margin:24px auto;padding:16px}
+    .card{background:#fff;border-radius:14px;box-shadow:0 6px 18px rgba(0,0,0,.08);padding:16px}
+    .btn{padding:10px 12px;border:0;border-radius:10px;background:#4f46e5;color:#fff;font-weight:700;cursor:pointer}
+    small{color:#6b7280}
+    code{background:#f3f4f6;padding:2px 6px;border-radius:8px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h2 style="margin:0 0 6px;">USP Expedientes</h2>
+      <p id="who" style="margin:0 0 12px;color:#6b7280">Cargando…</p>
+
+      <button class="btn" id="logout">Cerrar sesión</button>
+
+      <hr style="margin:16px 0;border:none;border-top:1px solid #eee" />
+
+      <p style="margin:0 0 8px;">✅ Ya hay sesión activa.</p>
+      <small>
+        Aquí conectaremos el módulo A (expedientes/sesiones/catálogos/estadísticas) usando RLS.
+        Si cierras sesión, volverás a <code>index.html</code>.
+      </small>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+    const cfg = window.APP_CONFIG;
+    const supabase = createClient(cfg.SUPABASE_URL, cfg.SUPABASE_PUBLISHABLE_KEY);
+
+    const who = document.getElementById("who");
+    const { data } = await supabase.auth.getSession();
+
+    if(!data.session){
+      window.location.href = new URL("index.html", cfg.SITE_URL).toString();
+    } else {
+      who.textContent = "Sesión activa: " + (data.session.user.email || "");
+    }
+
+    document.getElementById("logout").onclick = async ()=>{
+      await supabase.auth.signOut();
+      window.location.href = new URL("index.html", cfg.SITE_URL).toString();
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Procesando acceso…</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;padding:18px;background:#f6f7fb;margin:0}
+    .card{max-width:720px;margin:32px auto;background:#fff;border-radius:14px;box-shadow:0 6px 18px rgba(0,0,0,.08);padding:16px}
+    small{color:#6b7280}
+    code{background:#f3f4f6;padding:2px 6px;border-radius:8px}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h3 style="margin:0 0 8px;">Procesando acceso…</h3>
+    <p id="status" style="margin:0 0 10px;">Validando sesión.</p>
+    <small>
+      Si falla, normalmente es porque la URL no está agregada en Supabase → Auth → URL Configuration.
+      Debes incluir <code>callback.html</code> en Redirect URLs.
+    </small>
+  </div>
+
+  <script src="config.js"></script>
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+    const cfg = window.APP_CONFIG;
+    const supabase = createClient(cfg.SUPABASE_URL, cfg.SUPABASE_PUBLISHABLE_KEY);
+
+    const status = document.getElementById("status");
+
+    // A dónde mandar cuando ya esté logueado
+    const NEXT = new URL("app.html", cfg.SITE_URL).toString();
+
+    const { data, error } = await supabase.auth.getSession();
+
+    if(error){
+      status.textContent = "Error: " + error.message;
+    } else if(!data.session){
+      status.textContent = "No se detectó sesión. Abre nuevamente el enlace del correo.";
+    } else {
+      status.textContent = "Acceso confirmado. Redirigiendo…";
+      window.location.href = NEXT;
+    }
+  </script>
+</body>
+</html>
