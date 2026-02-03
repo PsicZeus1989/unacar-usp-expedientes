@@ -102,7 +102,7 @@
 
     <!-- PSICOLOGO: Expedientes -->
     <div class="card hide" id="viewPsico">
-      <h3 style="margin:0 0 10px;">Expedientes (PSICOLOGO)</h3>
+      <h3 style="margin:0 0 10px;">Expedientes</h3>
 
       <div class="row">
         <div class="col-12"><b>1) Registrar alumno + abrir expediente</b></div>
@@ -217,7 +217,7 @@
 
     <!-- JEFE: Estadísticas -->
     <div class="card hide" id="viewJefe">
-      <h3 style="margin:0 0 10px;">Estadísticas (JEFE)</h3>
+      <h3 style="margin:0 0 10px;">Estadísticas</h3>
       <div class="row">
         <div class="col-3">
           <label>Facultad</label>
@@ -257,7 +257,7 @@
     const hide = (el)=>el.classList.add("hide");
     const setMsg = (id, text, cls="muted") => { const el=$(id); el.className=cls; el.textContent=text; };
 
-    // --- sesión / perfil ---
+    // --- sesión ---
     const sessionRes = await supabase.auth.getSession();
     if(!sessionRes.data.session){
       window.location.href = new URL("index.html", cfg.SITE_URL).toString();
@@ -270,30 +270,39 @@
       window.location.href = new URL("index.html", cfg.SITE_URL).toString();
     };
 
-    // Cargar mi perfil/rol
-    const prof = await supabase.from("profiles").select("role, full_name").eq("user_id", user.id).single();
-    const role = prof.data?.role || "PSICOLOGO";
-    $("rolePill").textContent = `ROL: ${role}`;
+    // --- perfil/rol + is_psicologo (OPCIÓN 1) ---
+    const prof = await supabase
+      .from("profiles")
+      .select("role, full_name, is_psicologo")
+      .eq("user_id", user.id)
+      .single();
 
-    // --- Tabs según rol ---
+    const role = prof.data?.role || "PSICOLOGO";
+    const isPsicologo = !!prof.data?.is_psicologo;
+
+    $("rolePill").textContent = `ROL: ${role}${(role==="ADMIN" && isPsicologo) ? " + PSICOLOGO" : ""}`;
+
+    // --- Tabs según rol/capacidad ---
     const tabs = [];
     if(role === "ADMIN"){ tabs.push({id:"adminCats", label:"Catálogos", view:"viewAdminCatalogs"}); }
-    if(role === "PSICOLOGO"){ tabs.push({id:"psico", label:"Expedientes", view:"viewPsico"}); }
-    if(role === "JEFE"){ tabs.push({id:"jefe", label:"Estadísticas", view:"viewJefe"}); }
-    // ADMIN puede también ver stats (usa función), útil para probar
-    if(role === "ADMIN"){ tabs.push({id:"jefe", label:"Estadísticas", view:"viewJefe"}); }
+
+    if(role === "PSICOLOGO" || (role === "ADMIN" && isPsicologo)){
+      tabs.push({id:"psico", label:"Expedientes", view:"viewPsico"});
+    }
+
+    if(role === "JEFE" || role === "ADMIN"){
+      tabs.push({id:"jefe", label:"Estadísticas", view:"viewJefe"});
+    }
 
     function activateTab(tabId){
-      // botones
       [...document.querySelectorAll(".tab")].forEach(b=>b.classList.remove("active"));
       document.querySelector(`.tab[data-id="${tabId}"]`)?.classList.add("active");
-      // vistas
+
       ["viewAdminCatalogs","viewPsico","viewJefe"].forEach(v=>hide($(v)));
       const t = tabs.find(x=>x.id===tabId);
       if(t) show($(t.view));
     }
 
-    // render tabs
     $("tabs").innerHTML = tabs.map(t=>`<button class="tab" data-id="${t.id}">${t.label}</button>`).join("");
     document.querySelectorAll(".tab").forEach(btn=>{
       btn.onclick = ()=>activateTab(btn.dataset.id);
@@ -327,7 +336,6 @@
     // ADMIN · Catálogos
     // =========================
     if(role === "ADMIN"){
-      // init selects
       await loadFaculties($("facultyFilter"), true);
       $("facultyFilterWrap").style.display = "none";
 
@@ -368,7 +376,6 @@
             </tr>`;
         }).join("");
 
-        // acciones
         $("catTable").querySelectorAll("button").forEach(b=>{
           b.onclick = async ()=>{
             const id = b.dataset.id;
@@ -413,12 +420,12 @@
     }
 
     // =========================
-    // PSICOLOGO · Expedientes
+    // PSICOLOGO (o ADMIN con is_psicologo)
     // =========================
+    const canPsico = (role === "PSICOLOGO") || (role === "ADMIN" && isPsicologo);
     let selectedCaseId = null;
 
     async function refreshCases(){
-      // Trae mis cases + alumno
       const { data, error } = await supabase
         .from("cases")
         .select("id,last_activity_at,students:student_id(matricula,first_name,last_name,faculty_id,program_id)")
@@ -426,7 +433,6 @@
 
       if(error){ $("casesTable").innerHTML = `<tr><td colspan="6">Error: ${error.message}</td></tr>`; return; }
 
-      // map cat names (para mostrar)
       const fac = await supabase.from("catalog_faculties").select("id,name");
       const prog = await supabase.from("catalog_programs").select("id,name");
       const facMap = new Map((fac.data||[]).map(x=>[x.id,x.name]));
@@ -468,7 +474,6 @@
 
       if(error){ $("sessionsTable").innerHTML = `<tr><td colspan="5">Error: ${error.message}</td></tr>`; return; }
 
-      // cat maps
       const [svc, rea, ref] = await Promise.all([
         supabase.from("catalog_services").select("id,name"),
         supabase.from("catalog_reasons").select("id,name"),
@@ -490,8 +495,7 @@
       }).join("") || `<tr><td colspan="5">Sin sesiones todavía.</td></tr>`;
     }
 
-    if(role === "PSICOLOGO"){
-      // cargar catálogos para formularios
+    if(canPsico){
       await loadFaculties($("stFaculty"), false);
       await loadPrograms($("stProgram"), $("stFaculty").value, false);
       await loadSimple($("stReason"), "catalog_reasons", false);
@@ -519,12 +523,10 @@
         if(!matricula || !first_name || !last_name) return setMsg("psMsg","Completa matrícula, nombre y apellidos.","err");
         if(!faculty_id || !program_id) return setMsg("psMsg","Selecciona facultad y programa.","err");
 
-        // 1) crear/obtener student por matrícula
         let studentId = null;
         const existing = await supabase.from("students").select("id").eq("matricula", matricula).maybeSingle();
         if(existing.data?.id){
           studentId = existing.data.id;
-          // actualizar datos por si corrigieron
           await supabase.from("students").update({first_name,last_name,sex,faculty_id,program_id}).eq("id", studentId);
         }else{
           const ins = await supabase.from("students").insert([{matricula,first_name,last_name,sex,faculty_id,program_id}]).select("id").single();
@@ -532,7 +534,6 @@
           studentId = ins.data.id;
         }
 
-        // 2) crear case
         const cs = await supabase.from("cases").insert([{
           student_id: studentId,
           responsable_user_id: user.id,
@@ -549,7 +550,10 @@
       $("btnAddSession").onclick = async ()=>{
         if(!selectedCaseId) return setMsg("seMsg","Selecciona un expediente primero.","err");
 
-        const happened_at = $("seDate").value ? new Date($("seDate").value+"T12:00:00").toISOString() : new Date().toISOString();
+        const happened_at = $("seDate").value
+          ? new Date($("seDate").value+"T12:00:00").toISOString()
+          : new Date().toISOString();
+
         const service_id = Number($("seService").value || 0) || null;
         const reason_id = Number($("seReason").value || 0) || null;
         const referral_id = Number($("seReferral").value || 0) || null;
@@ -579,7 +583,7 @@
     }
 
     // =========================
-    // JEFE / ADMIN · Estadísticas
+    // Estadísticas (JEFE o ADMIN)
     // =========================
     if(role === "JEFE" || role === "ADMIN"){
       await loadFaculties($("stF"), true);
