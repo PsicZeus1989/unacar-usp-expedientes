@@ -18,7 +18,6 @@
     .err{color:#b91c1c;font-weight:700}
     .row{display:flex;gap:10px}
     .row > *{flex:1}
-    a{color:#4f46e5;text-decoration:none;font-weight:700}
   </style>
 </head>
 <body>
@@ -43,8 +42,7 @@
       <p id="msg" style="margin:12px 0 0;"></p>
 
       <small>
-        Si “Crear usuario” requiere confirmación de email, revisa tu bandeja.
-        (Depende de la opción <i>Confirm email</i> en Supabase.)
+        Si al crear usuario tu proyecto exige confirmación de correo, revisa tu bandeja.
       </small>
     </div>
   </div>
@@ -64,7 +62,7 @@
       return email.toLowerCase().endsWith(cfg.ALLOW_EMAIL_DOMAIN.toLowerCase());
     };
 
-    // Si ya hay sesión, mandar a app
+    // Si ya hay sesión, ir a app
     const s = await supabase.auth.getSession();
     if(s.data.session){
       window.location.href = new URL("app.html", cfg.SITE_URL).toString();
@@ -94,14 +92,12 @@
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          data: { full_name: email } // opcional; se usa por tu trigger de profiles
-        }
+        options: { data: { full_name: email } }
       });
 
       if(error) return msg("Error: " + error.message, "err");
 
-      msg("✅ Usuario creado. Si tu proyecto pide confirmación de correo, revisa tu bandeja. Luego inicia sesión.", "ok");
+      msg("✅ Usuario creado. Ahora inicia sesión (si tu proyecto pide confirmación, revisa correo).", "ok");
     };
 
     $("btnForgot").onclick = async ()=>{
@@ -119,4 +115,3 @@
   </script>
 </body>
 </html>
-
