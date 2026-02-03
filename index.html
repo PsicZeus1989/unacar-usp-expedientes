@@ -10,27 +10,41 @@
     .card{background:#fff;border-radius:14px;box-shadow:0 6px 18px rgba(0,0,0,.08);padding:16px}
     label{display:block;color:#6b7280;font-size:12px;margin:12px 0 6px}
     input{width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px;font-size:16px}
-    button{margin-top:14px;width:100%;padding:10px;border:0;border-radius:10px;background:#4f46e5;color:#fff;font-weight:700;cursor:pointer}
+    button{margin-top:12px;width:100%;padding:10px;border:0;border-radius:10px;background:#4f46e5;color:#fff;font-weight:800;cursor:pointer}
+    .btn2{background:#111827}
+    .btn3{background:#fff;color:#111827;border:1px solid #e5e7eb}
     small{color:#6b7280}
-    .ok{color:#166534}
-    .err{color:#b91c1c}
-    code{background:#f3f4f6;padding:2px 6px;border-radius:8px}
+    .ok{color:#166534;font-weight:700}
+    .err{color:#b91c1c;font-weight:700}
+    .row{display:flex;gap:10px}
+    .row > *{flex:1}
+    a{color:#4f46e5;text-decoration:none;font-weight:700}
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="card">
       <h2 style="margin:0 0 6px;">USP Expedientes</h2>
-      <small>Acceso por <b>Magic Link</b> (recibirás un enlace por correo).</small>
+      <small>Acceso con <b>correo + contraseña</b>.</small>
 
       <label>Correo institucional</label>
       <input id="email" placeholder="gfranco@delfin.unacar.mx" autocomplete="email" />
 
-      <button id="btn">Enviar Magic Link</button>
+      <label>Contraseña</label>
+      <input id="password" type="password" placeholder="••••••••" autocomplete="current-password" />
+
+      <div class="row">
+        <button id="btnLogin">Entrar</button>
+        <button class="btn2" id="btnSignup">Crear usuario</button>
+      </div>
+
+      <button class="btn3" id="btnForgot">Olvidé mi contraseña</button>
 
       <p id="msg" style="margin:12px 0 0;"></p>
+
       <small>
-        Al abrir el enlace, se procesará en <code>callback.html</code> y te mandará a la app.
+        Si “Crear usuario” requiere confirmación de email, revisa tu bandeja.
+        (Depende de la opción <i>Confirm email</i> en Supabase.)
       </small>
     </div>
   </div>
@@ -40,44 +54,69 @@
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
     const cfg = window.APP_CONFIG;
-    const SUPABASE_URL = cfg.SUPABASE_URL;
-    const SUPABASE_PUBLISHABLE_KEY = cfg.SUPABASE_PUBLISHABLE_KEY;
-
-    const CALLBACK_URL = new URL(cfg.CALLBACK_PATH, cfg.SITE_URL).toString();
-
-    const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+    const supabase = createClient(cfg.SUPABASE_URL, cfg.SUPABASE_PUBLISHABLE_KEY);
 
     const $ = (id)=>document.getElementById(id);
-    const msg = (text, cls="")=>{
-      $("msg").className = cls;
-      $("msg").textContent = text;
+    const msg = (text, cls="")=>{ $("msg").className = cls; $("msg").textContent = text; };
+
+    const enforceDomain = (email)=>{
+      if(!cfg.ALLOW_EMAIL_DOMAIN) return true;
+      return email.toLowerCase().endsWith(cfg.ALLOW_EMAIL_DOMAIN.toLowerCase());
     };
 
-    $("btn").addEventListener("click", async ()=>{
+    // Si ya hay sesión, mandar a app
+    const s = await supabase.auth.getSession();
+    if(s.data.session){
+      window.location.href = new URL("app.html", cfg.SITE_URL).toString();
+    }
+
+    $("btnLogin").onclick = async ()=>{
       const email = $("email").value.trim();
-      if(!email) return msg("Escribe tu correo.", "err");
+      const password = $("password").value;
+      if(!email || !password) return msg("Escribe correo y contraseña.", "err");
+      if(!enforceDomain(email)) return msg("Usa tu correo institucional.", "err");
 
-      if(cfg.ALLOW_EMAIL_DOMAIN){
-        const dom = cfg.ALLOW_EMAIL_DOMAIN.toLowerCase();
-        if(!email.toLowerCase().endsWith(dom)){
-          return msg(`Usa un correo que termine en ${dom}`, "err");
-        }
-      }
+      msg("Entrando…");
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if(error) return msg("Error: " + error.message, "err");
 
-      if(!SUPABASE_URL.includes("supabase.co") || SUPABASE_PUBLISHABLE_KEY.startsWith("PON_AQUI")){
-        return msg("Falta configurar config.js (SUPABASE_URL y SUPABASE_PUBLISHABLE_KEY).", "err");
-      }
+      window.location.href = new URL("app.html", cfg.SITE_URL).toString();
+    };
 
-      msg("Enviando…");
+    $("btnSignup").onclick = async ()=>{
+      const email = $("email").value.trim();
+      const password = $("password").value;
+      if(!email || !password) return msg("Escribe correo y una contraseña.", "err");
+      if(password.length < 8) return msg("La contraseña debe tener al menos 8 caracteres.", "err");
+      if(!enforceDomain(email)) return msg("Usa tu correo institucional.", "err");
 
-      const { error } = await supabase.auth.signInWithOtp({
+      msg("Creando usuario…");
+      const { error } = await supabase.auth.signUp({
         email,
-        options: { emailRedirectTo: CALLBACK_URL }
+        password,
+        options: {
+          data: { full_name: email } // opcional; se usa por tu trigger de profiles
+        }
       });
 
-      if(error) msg("Error: " + error.message, "err");
-      else msg("Listo. Revisa tu correo y abre el enlace.", "ok");
-    });
+      if(error) return msg("Error: " + error.message, "err");
+
+      msg("✅ Usuario creado. Si tu proyecto pide confirmación de correo, revisa tu bandeja. Luego inicia sesión.", "ok");
+    };
+
+    $("btnForgot").onclick = async ()=>{
+      const email = $("email").value.trim();
+      if(!email) return msg("Escribe tu correo para enviarte el reset.", "err");
+      if(!enforceDomain(email)) return msg("Usa tu correo institucional.", "err");
+
+      msg("Enviando enlace de recuperación…");
+      const redirectTo = new URL("reset.html", cfg.SITE_URL).toString();
+      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+      if(error) return msg("Error: " + error.message, "err");
+
+      msg("✅ Revisa tu correo: te llegó un enlace para restablecer contraseña.", "ok");
+    };
   </script>
 </body>
 </html>
+
