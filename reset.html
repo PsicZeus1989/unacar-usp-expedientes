@@ -51,7 +51,7 @@
       const { error } = await supabase.auth.updateUser({ password: p1 });
       if(error) return msg("Error: " + error.message, "err");
 
-      msg("✅ Contraseña actualizada. Te mandaré al login.", "ok");
+      msg("✅ Contraseña actualizada. Te mando al login.", "ok");
       setTimeout(()=> window.location.href = new URL("index.html", cfg.SITE_URL).toString(), 900);
     };
   </script>
