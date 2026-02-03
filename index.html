@@ -26,18 +26,28 @@
       <h2 style="margin:0 0 6px;">USP Expedientes</h2>
       <small>Acceso con <b>correo + contraseña</b>.</small>
 
-      <label>Correo institucional</label>
-      <input id="email" placeholder="gfranco@delfin.unacar.mx" autocomplete="email" />
+      <form id="f" autocomplete="off">
+        <label>Correo institucional</label>
+        <input id="email"
+               name="email_no_autofill"
+               placeholder="tusuario@delfin.unacar.mx"
+               autocomplete="off"
+               inputmode="email" />
 
-      <label>Contraseña</label>
-      <input id="password" type="password" placeholder="••••••••" autocomplete="current-password" />
+        <label>Contraseña</label>
+        <input id="password"
+               name="pass_no_autofill"
+               type="password"
+               placeholder="••••••••"
+               autocomplete="new-password" />
 
-      <div class="row">
-        <button id="btnLogin">Entrar</button>
-        <button class="btn2" id="btnSignup">Crear usuario</button>
-      </div>
+        <div class="row">
+          <button type="button" id="btnLogin">Entrar</button>
+          <button type="button" class="btn2" id="btnSignup">Crear usuario</button>
+        </div>
 
-      <button class="btn3" id="btnForgot">Olvidé mi contraseña</button>
+        <button type="button" class="btn3" id="btnForgot">Olvidé mi contraseña</button>
+      </form>
 
       <p id="msg" style="margin:12px 0 0;"></p>
 
@@ -62,11 +72,18 @@
       return email.toLowerCase().endsWith(cfg.ALLOW_EMAIL_DOMAIN.toLowerCase());
     };
 
-    // Si ya hay sesión, ir a app
+    // IMPORTANTE: NO precargar nada
+    $("email").value = "";
+    $("password").value = "";
+
+    // SIEMPRE pedir credenciales: si hay sesión guardada, cerrarla
     const s = await supabase.auth.getSession();
     if(s.data.session){
-      window.location.href = new URL("app.html", cfg.SITE_URL).toString();
+      await supabase.auth.signOut();
     }
+
+    // Evitar submit por Enter
+    $("f").addEventListener("submit", (e)=> e.preventDefault());
 
     $("btnLogin").onclick = async ()=>{
       const email = $("email").value.trim();
@@ -97,7 +114,9 @@
 
       if(error) return msg("Error: " + error.message, "err");
 
-      msg("✅ Usuario creado. Ahora inicia sesión (si tu proyecto pide confirmación, revisa correo).", "ok");
+      msg("✅ Usuario creado. Ahora inicia sesión.", "ok");
+      $("email").value = "";
+      $("password").value = "";
     };
 
     $("btnForgot").onclick = async ()=>{
