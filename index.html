@@ -1,60 +1,223 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>USP Expedientes · Acceso</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>USP Expedientes · App</title>
   <style>
     body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#f6f7fb;margin:0}
-    .wrap{max-width:560px;margin:40px auto;padding:16px}
-    .card{background:#fff;border-radius:14px;box-shadow:0 6px 18px rgba(0,0,0,.08);padding:16px}
-    label{display:block;color:#6b7280;font-size:12px;margin:12px 0 6px}
-    input{width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px;font-size:16px}
-    button{margin-top:12px;width:100%;padding:10px;border:0;border-radius:10px;background:#4f46e5;color:#fff;font-weight:800;cursor:pointer}
-    .btn2{background:#111827}
-    .btn3{background:#fff;color:#111827;border:1px solid #e5e7eb}
-    small{color:#6b7280}
+    .wrap{max-width:1100px;margin:20px auto;padding:16px}
+    .top{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:12px}
+    .card{background:#fff;border-radius:14px;box-shadow:0 6px 18px rgba(0,0,0,.08);padding:14px}
+    .row{display:grid;grid-template-columns:repeat(12,1fr);gap:10px}
+    .col-12{grid-column:span 12}
+    .col-6{grid-column:span 6}
+    .col-4{grid-column:span 4}
+    .col-3{grid-column:span 3}
+    .col-2{grid-column:span 2}
+    label{display:block;color:#6b7280;font-size:12px;margin:6px 0}
+    input,select,textarea{width:100%;padding:9px;border:1px solid #e5e7eb;border-radius:10px;font-size:14px}
+    textarea{min-height:90px}
+    .btn{padding:9px 12px;border:0;border-radius:10px;background:#4f46e5;color:#fff;font-weight:700;cursor:pointer}
+    .btn2{padding:9px 12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff;font-weight:700;cursor:pointer}
+    .btn3{padding:9px 12px;border:0;border-radius:10px;background:#111827;color:#fff;font-weight:700;cursor:pointer}
+    .muted{color:#6b7280;font-size:12px}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap}
+    .tab{padding:8px 10px;border-radius:999px;border:1px solid #e5e7eb;background:#fff;cursor:pointer;font-weight:700;font-size:13px}
+    .tab.active{background:#4f46e5;color:#fff;border-color:#4f46e5}
+    table{width:100%;border-collapse:collapse}
+    th,td{border-bottom:1px solid #eee;padding:8px;text-align:left;font-size:13px}
+    th{color:#6b7280;font-weight:700}
     .ok{color:#166534;font-weight:700}
     .err{color:#b91c1c;font-weight:700}
-    .row{display:flex;gap:10px}
-    .row > *{flex:1}
+    .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:#f3f4f6;font-size:12px}
+    .right{display:flex;gap:8px;align-items:center}
+    .hide{display:none}
+    .panel{background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:10px}
   </style>
 </head>
 <body>
   <div class="wrap">
+    <div class="top">
+      <div>
+        <div style="font-weight:900;font-size:18px;">USP Expedientes</div>
+        <div class="muted" id="who">Cargando sesión…</div>
+      </div>
+      <div class="right">
+        <span class="pill" id="rolePill">ROL: …</span>
+        <button class="btn2" id="logout">Cerrar sesión</button>
+      </div>
+    </div>
+
     <div class="card">
-      <h2 style="margin:0 0 6px;">USP Expedientes</h2>
-      <small>Acceso con <b>correo + contraseña</b>.</small>
+      <div class="tabs" id="tabs"></div>
+    </div>
 
-      <form id="f" autocomplete="off">
-        <label>Correo institucional</label>
-        <input id="email"
-               name="email_no_autofill"
-               placeholder="tusuario@delfin.unacar.mx"
-               autocomplete="off"
-               inputmode="email" />
+    <div style="height:12px"></div>
 
-        <label>Contraseña</label>
-        <input id="password"
-               name="pass_no_autofill"
-               type="password"
-               placeholder="••••••••"
-               autocomplete="new-password" />
+    <!-- ADMIN: Catálogos -->
+    <div class="card hide" id="viewAdminCatalogs">
+      <h3 style="margin:0 0 10px;">Catálogos (ADMIN)</h3>
 
-        <div class="row">
-          <button type="button" id="btnLogin">Entrar</button>
-          <button type="button" class="btn2" id="btnSignup">Crear usuario</button>
+      <div class="row">
+        <div class="col-3">
+          <label>Catálogo</label>
+          <select id="catType">
+            <option value="catalog_faculties">Facultades</option>
+            <option value="catalog_programs">Programas</option>
+            <option value="catalog_reasons">Motivos</option>
+            <option value="catalog_referrals">Canalización</option>
+            <option value="catalog_services">Servicios</option>
+          </select>
         </div>
 
-        <button type="button" class="btn3" id="btnForgot">Olvidé mi contraseña</button>
-      </form>
+        <div class="col-3" id="facultyFilterWrap">
+          <label>Facultad (para Programas)</label>
+          <select id="facultyFilter"></select>
+        </div>
 
-      <p id="msg" style="margin:12px 0 0;"></p>
+        <div class="col-6">
+          <label>Nuevo registro</label>
+          <div style="display:flex;gap:8px;">
+            <input id="catName" placeholder="Nombre" />
+            <button class="btn" id="btnAddCat">Agregar</button>
+          </div>
+          <div class="muted">Tip: en Programas, selecciona Facultad antes de agregar.</div>
+        </div>
 
-      <small>
-        Si al crear usuario tu proyecto exige confirmación de correo, revisa tu bandeja.
-      </small>
+        <div class="col-12">
+          <div id="catMsg" class="muted"></div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width:70px;">ID</th>
+                <th>Nombre</th>
+                <th style="width:110px;">Activo</th>
+                <th style="width:180px;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="catTable"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
+
+    <!-- PSICOLOGO: Expedientes -->
+    <div class="card hide" id="viewPsico">
+      <h3 style="margin:0 0 10px;">Expedientes</h3>
+
+      <div class="row">
+        <div class="col-12"><b>1) Buscar por matrícula</b></div>
+
+        <div class="col-4">
+          <label>Matrícula</label>
+          <input id="qMat" placeholder="Ej. 202312345" />
+        </div>
+        <div class="col-8" style="display:flex;align-items:flex-end;gap:10px;">
+          <button class="btn" id="btnFind">Buscar</button>
+          <button class="btn2" id="btnClear">Limpiar</button>
+          <div id="findMsg" class="muted"></div>
+        </div>
+
+        <div class="col-12">
+          <div class="panel" id="studentPanel">
+            <div class="muted">Busca una matrícula para cargar o registrar al alumno.</div>
+          </div>
+        </div>
+
+        <div class="col-12" style="margin-top:8px;"><b>2) Mis expedientes</b></div>
+        <div class="col-12">
+          <table>
+            <thead>
+              <tr>
+                <th>Matrícula</th>
+                <th>Alumno</th>
+                <th>Facultad</th>
+                <th>Programa</th>
+                <th>Última actividad</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="casesTable"></tbody>
+          </table>
+        </div>
+
+        <div class="col-12 hide" id="sessionPane">
+          <hr style="border:none;border-top:1px solid #eee;margin:14px 0">
+          <b>3) Agregar sesión</b>
+          <div class="row">
+            <div class="col-3">
+              <label>Fecha de atención</label>
+              <input id="seDate" type="date" />
+            </div>
+            <div class="col-3">
+              <label>Servicio</label>
+              <select id="seService"></select>
+            </div>
+            <div class="col-3">
+              <label>Motivo</label>
+              <select id="seReason"></select>
+            </div>
+            <div class="col-3">
+              <label>Canalización</label>
+              <select id="seReferral"></select>
+            </div>
+            <div class="col-12">
+              <label>Nota</label>
+              <textarea id="seNote" placeholder="Nota breve de sesión (sensible)"></textarea>
+            </div>
+            <div class="col-12" style="display:flex;gap:10px;align-items:center;">
+              <button class="btn" id="btnAddSession">Guardar sesión</button>
+              <span id="seMsg" class="muted"></span>
+            </div>
+          </div>
+
+          <div style="height:10px"></div>
+          <b>Sesiones recientes</b>
+          <table>
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Servicio</th>
+                <th>Motivo</th>
+                <th>Canalización</th>
+                <th>Nota</th>
+              </tr>
+            </thead>
+            <tbody id="sessionsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- JEFE: Estadísticas -->
+    <div class="card hide" id="viewJefe">
+      <h3 style="margin:0 0 10px;">Estadísticas</h3>
+      <div class="row">
+        <div class="col-3">
+          <label>Facultad</label>
+          <select id="stF"></select>
+        </div>
+        <div class="col-3">
+          <label>Programa</label>
+          <select id="stP"></select>
+        </div>
+        <div class="col-2">
+          <label>k mínimo</label>
+          <input id="stK" type="number" min="2" value="5"/>
+        </div>
+        <div class="col-4" style="display:flex;align-items:flex-end;gap:10px;">
+          <button class="btn" id="btnLoadStats">Cargar</button>
+          <span id="statsMsg" class="muted"></span>
+        </div>
+
+        <div class="col-12">
+          <pre id="statsOut" style="background:#0b1020;color:#e5e7eb;padding:12px;border-radius:12px;overflow:auto;max-height:360px;"></pre>
+          <div class="muted">Nota: el JEFE solo recibe agregados (sin matrículas ni nombres).</div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <script src="config.js"></script>
@@ -65,72 +228,641 @@
     const supabase = createClient(cfg.SUPABASE_URL, cfg.SUPABASE_PUBLISHABLE_KEY);
 
     const $ = (id)=>document.getElementById(id);
-    const msg = (text, cls="")=>{ $("msg").className = cls; $("msg").textContent = text; };
+    const show = (el)=>el.classList.remove("hide");
+    const hide = (el)=>el.classList.add("hide");
+    const setMsg = (id, text, cls="muted") => { const el=$(id); el.className=cls; el.textContent=text; };
 
-    const enforceDomain = (email)=>{
-      if(!cfg.ALLOW_EMAIL_DOMAIN) return true;
-      return email.toLowerCase().endsWith(cfg.ALLOW_EMAIL_DOMAIN.toLowerCase());
+    // --- sesión ---
+    const sessionRes = await supabase.auth.getSession();
+    if(!sessionRes.data.session){
+      window.location.href = new URL("index.html", cfg.SITE_URL).toString();
+    }
+    const user = sessionRes.data.session.user;
+    $("who").textContent = `Sesión activa: ${user.email || ""}`;
+
+    $("logout").onclick = async ()=>{
+      await supabase.auth.signOut();
+      window.location.href = new URL("index.html", cfg.SITE_URL).toString();
     };
 
-    // IMPORTANTE: NO precargar nada
-    $("email").value = "";
-    $("password").value = "";
+    // --- perfil/rol + is_psicologo (Opción 1) ---
+    const prof = await supabase
+      .from("profiles")
+      .select("role, full_name, is_psicologo")
+      .eq("user_id", user.id)
+      .single();
 
-    // SIEMPRE pedir credenciales: si hay sesión guardada, cerrarla
-    const s = await supabase.auth.getSession();
-    if(s.data.session){
-      await supabase.auth.signOut();
+    const role = prof.data?.role || "PSICOLOGO";
+    const isPsicologo = !!prof.data?.is_psicologo;
+
+    $("rolePill").textContent = `ROL: ${role}${(role==="ADMIN" && isPsicologo) ? " + PSICOLOGO" : ""}`;
+
+    // --- Tabs ---
+    const tabs = [];
+    if(role === "ADMIN"){ tabs.push({id:"adminCats", label:"Catálogos", view:"viewAdminCatalogs"}); }
+
+    const canPsico = (role === "PSICOLOGO") || (role === "ADMIN" && isPsicologo);
+    if(canPsico){ tabs.push({id:"psico", label:"Expedientes", view:"viewPsico"}); }
+
+    if(role === "JEFE" || role === "ADMIN"){
+      tabs.push({id:"jefe", label:"Estadísticas", view:"viewJefe"});
     }
 
-    // Evitar submit por Enter
-    $("f").addEventListener("submit", (e)=> e.preventDefault());
+    function activateTab(tabId){
+      [...document.querySelectorAll(".tab")].forEach(b=>b.classList.remove("active"));
+      document.querySelector(`.tab[data-id="${tabId}"]`)?.classList.add("active");
+      ["viewAdminCatalogs","viewPsico","viewJefe"].forEach(v=>hide($(v)));
+      const t = tabs.find(x=>x.id===tabId);
+      if(t) show($(t.view));
+    }
 
-    $("btnLogin").onclick = async ()=>{
-      const email = $("email").value.trim();
-      const password = $("password").value;
-      if(!email || !password) return msg("Escribe correo y contraseña.", "err");
-      if(!enforceDomain(email)) return msg("Usa tu correo institucional.", "err");
+    $("tabs").innerHTML = tabs.map(t=>`<button class="tab" data-id="${t.id}">${t.label}</button>`).join("");
+    document.querySelectorAll(".tab").forEach(btn=> btn.onclick = ()=>activateTab(btn.dataset.id));
+    activateTab(tabs[0].id);
 
-      msg("Entrando…");
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if(error) return msg("Error: " + error.message, "err");
+    // --- Helpers catálogos ---
+    async function loadFaculties(selectEl, includeAll=true){
+      const { data } = await supabase.from("catalog_faculties").select("id,name,active").order("name");
+      selectEl.innerHTML = (includeAll ? `<option value="">(Todas)</option>` : ``) +
+        (data||[]).map(x=>`<option value="${x.id}">${x.name}${x.active? "" : " (INACTIVA)"}</option>`).join("");
+      return data||[];
+    }
+    async function loadPrograms(selectEl, facultyId, includeAll=true){
+      let q = supabase.from("catalog_programs").select("id,name,active,faculty_id").order("name");
+      if(facultyId) q = q.eq("faculty_id", facultyId);
+      const { data } = await q;
+      selectEl.innerHTML = (includeAll ? `<option value="">(Todos)</option>` : ``) +
+        (data||[]).map(x=>`<option value="${x.id}">${x.name}${x.active? "" : " (INACTIVO)"}</option>`).join("");
+      return data||[];
+    }
+    async function loadSimple(selectEl, table, includeAll=false){
+      const { data } = await supabase.from(table).select("id,name,active").order("name");
+      selectEl.innerHTML = (includeAll ? `<option value="">(Todos)</option>` : ``) +
+        (data||[]).filter(x=>x.active).map(x=>`<option value="${x.id}">${x.name}</option>`).join("");
+      return data||[];
+    }
+    const toISODate = (d)=> new Date(d).toISOString().slice(0,10);
 
-      window.location.href = new URL("app.html", cfg.SITE_URL).toString();
-    };
+    // =========================
+    // ADMIN · Catálogos
+    // =========================
+    if(role === "ADMIN"){
+      await loadFaculties($("facultyFilter"), true);
+      $("facultyFilterWrap").style.display = "none";
 
-    $("btnSignup").onclick = async ()=>{
-      const email = $("email").value.trim();
-      const password = $("password").value;
-      if(!email || !password) return msg("Escribe correo y una contraseña.", "err");
-      if(password.length < 8) return msg("La contraseña debe tener al menos 8 caracteres.", "err");
-      if(!enforceDomain(email)) return msg("Usa tu correo institucional.", "err");
+      $("catType").onchange = async ()=>{
+        const t = $("catType").value;
+        $("facultyFilterWrap").style.display = (t==="catalog_programs") ? "block" : "none";
+        if(t==="catalog_programs"){
+          await loadFaculties($("facultyFilter"), true);
+        }
+        await refreshCatalogTable();
+      };
 
-      msg("Creando usuario…");
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { full_name: email } }
+      $("facultyFilter").onchange = async ()=>refreshCatalogTable();
+
+      async function refreshCatalogTable(){
+        const t = $("catType").value;
+        setMsg("catMsg","Cargando…");
+        let q = supabase.from(t).select("*").order("id");
+        if(t==="catalog_programs"){
+          const fid = $("facultyFilter").value || null;
+          if(fid) q = q.eq("faculty_id", fid);
+        }
+        const { data, error } = await q;
+        if(error){ setMsg("catMsg","Error: "+error.message,"err"); return; }
+
+        setMsg("catMsg", `${data.length} registros.`);
+        $("catTable").innerHTML = (data||[]).map(r=>{
+          const active = r.active ? "Sí" : "No";
+          return `
+            <tr>
+              <td>${r.id}</td>
+              <td>${r.name ?? ""}</td>
+              <td>${active}</td>
+              <td>
+                <button class="btn2" data-act="toggle" data-id="${r.id}">Act/Des</button>
+                <button class="btn2" data-act="del" data-id="${r.id}">Borrar</button>
+              </td>
+            </tr>`;
+        }).join("");
+
+        $("catTable").querySelectorAll("button").forEach(b=>{
+          b.onclick = async ()=>{
+            const id = b.dataset.id;
+            const act = b.dataset.act;
+            if(act==="toggle"){
+              const row = data.find(x=>String(x.id)===String(id));
+              const { error } = await supabase.from(t).update({active: !row.active}).eq("id", id);
+              if(error) setMsg("catMsg","Error: "+error.message,"err");
+              else await refreshCatalogTable();
+            }
+            if(act==="del"){
+              if(!confirm("¿Seguro que deseas borrar este registro?")) return;
+              const { error } = await supabase.from(t).delete().eq("id", id);
+              if(error) setMsg("catMsg","Error: "+error.message,"err");
+              else await refreshCatalogTable();
+            }
+          };
+        });
+      }
+
+      $("btnAddCat").onclick = async ()=>{
+        const t = $("catType").value;
+        const name = $("catName").value.trim();
+        if(!name) return setMsg("catMsg","Escribe un nombre.","err");
+
+        let payload = { name, active:true };
+        if(t==="catalog_programs"){
+          const fid = $("facultyFilter").value;
+          if(!fid) return setMsg("catMsg","Selecciona una Facultad para agregar Programas.","err");
+          payload = { ...payload, faculty_id: Number(fid) };
+        }
+
+        const { error } = await supabase.from(t).insert([payload]);
+        if(error) setMsg("catMsg","Error: "+error.message,"err");
+        else {
+          $("catName").value="";
+          await refreshCatalogTable();
+        }
+      };
+
+      await refreshCatalogTable();
+    }
+
+    // =========================
+    // PSICOLOGO (o ADMIN con is_psicologo): flujo por matrícula + 1 ACTIVO global
+    // =========================
+    let selectedCaseId = null;
+    let loadedStudentId = null;
+    let loadedActiveCase = null; // {id, responsable_user_id, last_activity_at}
+    let catalogsCache = null;
+
+    async function ensureCatalogsCache(){
+      if(catalogsCache) return catalogsCache;
+      const [fac, prog, rea, ref] = await Promise.all([
+        supabase.from("catalog_faculties").select("id,name,active").order("name"),
+        supabase.from("catalog_programs").select("id,name,faculty_id,active").order("name"),
+        supabase.from("catalog_reasons").select("id,name,active").order("name"),
+        supabase.from("catalog_referrals").select("id,name,active").order("name")
+      ]);
+      catalogsCache = {
+        faculties: fac.data||[],
+        programs: prog.data||[],
+        reasons: (rea.data||[]).filter(x=>x.active),
+        referrals: (ref.data||[]).filter(x=>x.active)
+      };
+      return catalogsCache;
+    }
+
+    async function renderStudentPanel(mode){
+      // mode: "empty" | "loaded"
+      if(mode==="empty"){
+        loadedStudentId = null;
+        loadedActiveCase = null;
+        $("studentPanel").innerHTML = `<div class="muted">Busca una matrícula para cargar o registrar al alumno.</div>`;
+        hide($("sessionPane"));
+        selectedCaseId = null;
+        return;
+      }
+
+      const cats = await ensureCatalogsCache();
+
+      const facOptions = cats.faculties.map(f=>`<option value="${f.id}">${f.name}</option>`).join("");
+      const reaOptions = cats.reasons.map(r=>`<option value="${r.id}">${r.name}</option>`).join("");
+      const refOptions = cats.referrals.map(r=>`<option value="${r.id}">${r.name}</option>`).join("");
+
+      $("studentPanel").innerHTML = `
+        <div class="row">
+          <div class="col-3">
+            <label>Matrícula</label>
+            <input id="stMat" disabled />
+          </div>
+          <div class="col-3">
+            <label>Nombre</label>
+            <input id="stFirst" />
+          </div>
+          <div class="col-3">
+            <label>Apellidos</label>
+            <input id="stLast" />
+          </div>
+          <div class="col-3">
+            <label>Sexo</label>
+            <select id="stSex">
+              <option>Masculino</option>
+              <option>Femenino</option>
+              <option>No especificado</option>
+            </select>
+          </div>
+
+          <div class="col-4">
+            <label>Facultad</label>
+            <select id="stFaculty">${facOptions}</select>
+          </div>
+          <div class="col-4">
+            <label>Programa educativo</label>
+            <select id="stProgram"></select>
+          </div>
+
+          <div class="col-4">
+            <label>Motivo (inicial)</label>
+            <select id="stReason">
+              <option value="">(Opcional)</option>
+              ${reaOptions}
+            </select>
+          </div>
+
+          <div class="col-4">
+            <label>Canalización (inicial)</label>
+            <select id="stReferral">
+              <option value="">(Opcional)</option>
+              ${refOptions}
+            </select>
+          </div>
+
+          <div class="col-8" style="display:flex;align-items:flex-end;gap:10px;">
+            <button class="btn2" id="btnSaveStudent">Guardar alumno</button>
+            <button class="btn" id="btnCreateActiveCase">Crear expediente ACTIVO</button>
+            <button class="btn3" id="btnOpenActiveCase">Abrir expediente ACTIVO</button>
+            <div id="psMsg" class="muted"></div>
+          </div>
+
+          <div class="col-12">
+            <div id="activeInfo" class="muted"></div>
+          </div>
+        </div>
+      `;
+
+      // fill data from globals
+      $("stMat").value = $("qMat").value.trim();
+
+      // programs depend on faculty
+      const programsByFaculty = (fid)=> cats.programs.filter(p=>p.faculty_id===Number(fid)).map(p=>`<option value="${p.id}">${p.name}</option>`).join("");
+
+      const setPrograms = ()=>{
+        const fid = $("stFaculty").value;
+        $("stProgram").innerHTML = programsByFaculty(fid);
+      };
+
+      $("stFaculty").onchange = ()=> setPrograms();
+      setPrograms();
+
+      // disable/open buttons based on active case state
+      const updateActiveUI = async ()=>{
+        const activeEl = $("activeInfo");
+        const btnCreate = $("btnCreateActiveCase");
+        const btnOpen = $("btnOpenActiveCase");
+
+        if(!loadedActiveCase){
+          activeEl.innerHTML = `<span class="ok">No hay expediente ACTIVO para esta matrícula.</span>`;
+          btnCreate.disabled = false;
+          btnOpen.disabled = true;
+          return;
+        }
+
+        const isMine = loadedActiveCase.responsable_user_id === user.id;
+        const last = new Date(loadedActiveCase.last_activity_at).toLocaleString();
+
+        if(isMine){
+          activeEl.innerHTML = `<span class="ok">Ya existe expediente ACTIVO (tuyo). Última actividad: ${last}</span>`;
+          btnCreate.disabled = true;
+          btnOpen.disabled = false;
+        }else{
+          activeEl.innerHTML = `<span class="err">Ya existe expediente ACTIVO asignado a otro psicólogo. Última actividad: ${last}. No puedes crear otro expediente (regla USP).</span>`;
+          btnCreate.disabled = true;
+          btnOpen.disabled = true;
+        }
+      };
+
+      // save student
+      $("btnSaveStudent").onclick = async ()=>{
+        setMsg("psMsg","Guardando…");
+        const matricula = $("stMat").value.trim();
+        const first_name = $("stFirst").value.trim();
+        const last_name = $("stLast").value.trim();
+        const sex = $("stSex").value;
+        const faculty_id = Number($("stFaculty").value);
+        const program_id = Number($("stProgram").value);
+
+        if(!matricula || !first_name || !last_name) return setMsg("psMsg","Completa nombre y apellidos.","err");
+        if(!faculty_id || !program_id) return setMsg("psMsg","Selecciona facultad y programa.","err");
+
+        if(loadedStudentId){
+          const up = await supabase.from("students")
+            .update({first_name,last_name,sex,faculty_id,program_id})
+            .eq("id", loadedStudentId);
+
+          if(up.error) return setMsg("psMsg","Error: "+up.error.message,"err");
+          setMsg("psMsg","✅ Alumno actualizado.","ok");
+        }else{
+          const ins = await supabase.from("students")
+            .insert([{matricula,first_name,last_name,sex,faculty_id,program_id}])
+            .select("id")
+            .single();
+
+          if(ins.error) return setMsg("psMsg","Error: "+ins.error.message,"err");
+          loadedStudentId = ins.data.id;
+          setMsg("psMsg","✅ Alumno registrado.","ok");
+        }
+      };
+
+      // create active case (global rule)
+      $("btnCreateActiveCase").onclick = async ()=>{
+        setMsg("psMsg","Creando expediente…");
+
+        const matricula = $("stMat").value.trim();
+        const first_name = $("stFirst").value.trim();
+        const last_name = $("stLast").value.trim();
+        const sex = $("stSex").value;
+        const faculty_id = Number($("stFaculty").value);
+        const program_id = Number($("stProgram").value);
+        const initial_reason_id = $("stReason").value ? Number($("stReason").value) : null;
+        const initial_referral_id = $("stReferral").value ? Number($("stReferral").value) : null;
+
+        if(!matricula || !first_name || !last_name) return setMsg("psMsg","Completa nombre y apellidos.","err");
+        if(!faculty_id || !program_id) return setMsg("psMsg","Selecciona facultad y programa.","err");
+
+        // 1) upsert student by matrícula
+        if(!loadedStudentId){
+          const existing = await supabase.from("students").select("id").eq("matricula", matricula).maybeSingle();
+          if(existing.data?.id){
+            loadedStudentId = existing.data.id;
+            await supabase.from("students")
+              .update({first_name,last_name,sex,faculty_id,program_id})
+              .eq("id", loadedStudentId);
+          }else{
+            const ins = await supabase.from("students")
+              .insert([{matricula,first_name,last_name,sex,faculty_id,program_id}])
+              .select("id")
+              .single();
+            if(ins.error) return setMsg("psMsg","Error student: "+ins.error.message,"err");
+            loadedStudentId = ins.data.id;
+          }
+        }else{
+          await supabase.from("students")
+            .update({first_name,last_name,sex,faculty_id,program_id})
+            .eq("id", loadedStudentId);
+        }
+
+        // 2) double-check active case (for friendly message)
+        const ac = await supabase
+          .from("cases")
+          .select("id,responsable_user_id,last_activity_at,status")
+          .eq("student_id", loadedStudentId)
+          .eq("status","ACTIVO")
+          .maybeSingle();
+
+        if(ac.data?.id){
+          loadedActiveCase = ac.data;
+          setMsg("psMsg","Ya existe expediente ACTIVO. No se creó otro.","err");
+          await updateActiveUI();
+          return;
+        }
+
+        // 3) create
+        const cs = await supabase.from("cases")
+          .insert([{
+            student_id: loadedStudentId,
+            responsable_user_id: user.id,
+            status: "ACTIVO",
+            initial_reason_id,
+            initial_referral_id
+          }])
+          .select("id,responsable_user_id,last_activity_at")
+          .single();
+
+        if(cs.error){
+          // si choca por índice único global, se mostrará aquí
+          return setMsg("psMsg","Error: "+cs.error.message,"err");
+        }
+
+        loadedActiveCase = cs.data;
+        setMsg("psMsg","✅ Expediente ACTIVO creado.","ok");
+        await refreshCases();
+        await updateActiveUI();
+      };
+
+      $("btnOpenActiveCase").onclick = async ()=>{
+        if(!loadedActiveCase?.id) return;
+        selectedCaseId = loadedActiveCase.id;
+        show($("sessionPane"));
+        $("seDate").value = toISODate(new Date());
+        await refreshSessions();
+        setMsg("seMsg", `Expediente ACTIVO abierto: ${selectedCaseId}`);
+      };
+
+      // keep reference to update function outside
+      window.__updateActiveUI = updateActiveUI;
+      await updateActiveUI();
+    }
+
+    async function findByMatricula(){
+      const m = $("qMat").value.trim();
+      if(!m) return setMsg("findMsg","Escribe una matrícula.","err");
+
+      setMsg("findMsg","Buscando…");
+
+      loadedStudentId = null;
+      loadedActiveCase = null;
+      hide($("sessionPane"));
+      selectedCaseId = null;
+
+      // Buscar alumno (si existe)
+      const st = await supabase.from("students")
+        .select("id,matricula,first_name,last_name,sex,faculty_id,program_id")
+        .eq("matricula", m)
+        .maybeSingle();
+
+      if(st.error) return setMsg("findMsg","Error: "+st.error.message,"err");
+
+      if(st.data?.id){
+        loadedStudentId = st.data.id;
+      }
+
+      // Buscar expediente ACTIVO global del alumno (si existe)
+      if(loadedStudentId){
+        const ac = await supabase.from("cases")
+          .select("id,responsable_user_id,last_activity_at,status")
+          .eq("student_id", loadedStudentId)
+          .eq("status","ACTIVO")
+          .maybeSingle();
+
+        if(ac.error) return setMsg("findMsg","Error: "+ac.error.message,"err");
+        if(ac.data?.id) loadedActiveCase = ac.data;
+      }
+
+      await renderStudentPanel("loaded");
+
+      // si el alumno existe, rellenar
+      if(st.data?.id){
+        $("stFirst").value = st.data.first_name || "";
+        $("stLast").value = st.data.last_name || "";
+        $("stSex").value = st.data.sex || "No especificado";
+        $("stFaculty").value = String(st.data.faculty_id);
+        $("stFaculty").dispatchEvent(new Event("change"));
+        $("stProgram").value = String(st.data.program_id);
+      }
+
+      setMsg("findMsg", st.data?.id ? "✅ Alumno encontrado/cargado." : "✅ Matrícula nueva: captura datos para registrar.", "ok");
+    }
+
+    async function refreshCases(){
+      const { data, error } = await supabase
+        .from("cases")
+        .select("id,last_activity_at,students:student_id(matricula,first_name,last_name,faculty_id,program_id)")
+        .order("last_activity_at",{ascending:false});
+
+      if(error){ $("casesTable").innerHTML = `<tr><td colspan="6">Error: ${error.message}</td></tr>`; return; }
+
+      const fac = await supabase.from("catalog_faculties").select("id,name");
+      const prog = await supabase.from("catalog_programs").select("id,name");
+      const facMap = new Map((fac.data||[]).map(x=>[x.id,x.name]));
+      const progMap = new Map((prog.data||[]).map(x=>[x.id,x.name]));
+
+      $("casesTable").innerHTML = (data||[]).map(r=>{
+        const st = r.students;
+        const alumno = `${st.first_name} ${st.last_name}`;
+        return `
+          <tr>
+            <td>${st.matricula}</td>
+            <td>${alumno}</td>
+            <td>${facMap.get(st.faculty_id) || st.faculty_id}</td>
+            <td>${progMap.get(st.program_id) || st.program_id}</td>
+            <td>${new Date(r.last_activity_at).toLocaleString()}</td>
+            <td><button class="btn2" data-id="${r.id}">Sesiones</button></td>
+          </tr>`;
+      }).join("") || `<tr><td colspan="6">Aún no tienes expedientes.</td></tr>`;
+
+      $("casesTable").querySelectorAll("button").forEach(b=>{
+        b.onclick = async ()=>{
+          selectedCaseId = b.dataset.id;
+          show($("sessionPane"));
+          $("seDate").value = toISODate(new Date());
+          await refreshSessions();
+          setMsg("seMsg", `Expediente abierto: ${selectedCaseId}`);
+        };
       });
+    }
 
-      if(error) return msg("Error: " + error.message, "err");
+    async function refreshSessions(){
+      if(!selectedCaseId) return;
 
-      msg("✅ Usuario creado. Ahora inicia sesión.", "ok");
-      $("email").value = "";
-      $("password").value = "";
-    };
+      const { data, error } = await supabase
+        .from("sessions")
+        .select("happened_at,note,service_id,reason_id,referral_id")
+        .eq("case_id", selectedCaseId)
+        .order("happened_at",{ascending:false})
+        .limit(30);
 
-    $("btnForgot").onclick = async ()=>{
-      const email = $("email").value.trim();
-      if(!email) return msg("Escribe tu correo para enviarte el reset.", "err");
-      if(!enforceDomain(email)) return msg("Usa tu correo institucional.", "err");
+      if(error){ $("sessionsTable").innerHTML = `<tr><td colspan="5">Error: ${error.message}</td></tr>`; return; }
 
-      msg("Enviando enlace de recuperación…");
-      const redirectTo = new URL("reset.html", cfg.SITE_URL).toString();
-      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
-      if(error) return msg("Error: " + error.message, "err");
+      const [svc, rea, ref] = await Promise.all([
+        supabase.from("catalog_services").select("id,name"),
+        supabase.from("catalog_reasons").select("id,name"),
+        supabase.from("catalog_referrals").select("id,name")
+      ]);
+      const svcMap = new Map((svc.data||[]).map(x=>[x.id,x.name]));
+      const reaMap = new Map((rea.data||[]).map(x=>[x.id,x.name]));
+      const refMap = new Map((ref.data||[]).map(x=>[x.id,x.name]));
 
-      msg("✅ Revisa tu correo: te llegó un enlace para restablecer contraseña.", "ok");
-    };
+      $("sessionsTable").innerHTML = (data||[]).map(s=>{
+        return `
+          <tr>
+            <td>${new Date(s.happened_at).toLocaleDateString()}</td>
+            <td>${svcMap.get(s.service_id) || ""}</td>
+            <td>${reaMap.get(s.reason_id) || ""}</td>
+            <td>${refMap.get(s.referral_id) || ""}</td>
+            <td>${(s.note||"").slice(0,140)}</td>
+          </tr>`;
+      }).join("") || `<tr><td colspan="5">Sin sesiones todavía.</td></tr>`;
+    }
+
+    if(canPsico){
+      // cargar selects de sesión
+      await loadSimple($("seService"), "catalog_services", false);
+      await loadSimple($("seReason"), "catalog_reasons", false);
+      await loadSimple($("seReferral"), "catalog_referrals", false);
+
+      $("btnFind").onclick = findByMatricula;
+
+      $("btnClear").onclick = async ()=>{
+        $("qMat").value = "";
+        setMsg("findMsg","");
+        await renderStudentPanel("empty");
+      };
+
+      $("btnAddSession").onclick = async ()=>{
+        if(!selectedCaseId) return setMsg("seMsg","Selecciona/abre un expediente primero.","err");
+
+        const happened_at = $("seDate").value
+          ? new Date($("seDate").value+"T12:00:00").toISOString()
+          : new Date().toISOString();
+
+        const service_id = Number($("seService").value || 0) || null;
+        const reason_id = Number($("seReason").value || 0) || null;
+        const referral_id = Number($("seReferral").value || 0) || null;
+        const note = $("seNote").value.trim();
+
+        setMsg("seMsg","Guardando…");
+
+        const res = await supabase.from("sessions").insert([{
+          case_id: selectedCaseId,
+          happened_at,
+          service_id,
+          reason_id,
+          referral_id,
+          note,
+          created_by: user.id
+        }]);
+
+        if(res.error) return setMsg("seMsg","Error: "+res.error.message,"err");
+
+        $("seNote").value="";
+        setMsg("seMsg","✅ Sesión guardada.","ok");
+        await refreshSessions();
+        await refreshCases();
+
+        // actualizar referencia si el caso activo corresponde a la matrícula cargada
+        if(window.__updateActiveUI) await window.__updateActiveUI();
+      };
+
+      await renderStudentPanel("empty");
+      await refreshCases();
+    }
+
+    // =========================
+    // Estadísticas (JEFE o ADMIN)
+    // =========================
+    if(role === "JEFE" || role === "ADMIN"){
+      await loadFaculties($("stF"), true);
+      await loadPrograms($("stP"), null, true);
+
+      $("stF").onchange = async ()=>{
+        const fid = $("stF").value || null;
+        await loadPrograms($("stP"), fid, true);
+      };
+
+      $("btnLoadStats").onclick = async ()=>{
+        setMsg("statsMsg","Cargando…");
+        const faculty = $("stF").value ? Number($("stF").value) : null;
+        const program = $("stP").value ? Number($("stP").value) : null;
+        const k = Number($("stK").value || 5);
+
+        const { data, error } = await supabase.rpc("get_stats", {
+          p_faculty_id: faculty,
+          p_program_id: program,
+          p_min_k: k
+        });
+
+        if(error){
+          setMsg("statsMsg","Error: "+error.message,"err");
+          $("statsOut").textContent = "";
+          return;
+        }
+        setMsg("statsMsg","✅ Listo.","ok");
+        $("statsOut").textContent = JSON.stringify(data, null, 2);
+      };
+    }
   </script>
 </body>
 </html>
