@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Restablecer contraseña</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#f6f7fb;margin:0;padding:16px}
+    .card{max-width:560px;margin:40px auto;background:#fff;border-radius:14px;box-shadow:0 6px 18px rgba(0,0,0,.08);padding:16px}
+    label{display:block;color:#6b7280;font-size:12px;margin:12px 0 6px}
+    input{width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px;font-size:16px}
+    button{margin-top:12px;width:100%;padding:10px;border:0;border-radius:10px;background:#4f46e5;color:#fff;font-weight:800;cursor:pointer}
+    .ok{color:#166534;font-weight:700}
+    .err{color:#b91c1c;font-weight:700}
+    small{color:#6b7280}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2 style="margin:0 0 6px;">Nueva contraseña</h2>
+    <small>Escribe tu nueva contraseña y guarda.</small>
+
+    <label>Nueva contraseña</label>
+    <input id="p1" type="password" placeholder="mínimo 8 caracteres" />
+
+    <label>Repetir contraseña</label>
+    <input id="p2" type="password" placeholder="repite" />
+
+    <button id="btn">Guardar</button>
+    <p id="msg"></p>
+  </div>
+
+  <script src="config.js"></script>
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+    const cfg = window.APP_CONFIG;
+    const supabase = createClient(cfg.SUPABASE_URL, cfg.SUPABASE_PUBLISHABLE_KEY);
+
+    const $ = (id)=>document.getElementById(id);
+    const msg = (text, cls="")=>{ $("msg").className=cls; $("msg").textContent=text; };
+
+    $("btn").onclick = async ()=>{
+      const p1 = $("p1").value;
+      const p2 = $("p2").value;
+      if(!p1 || !p2) return msg("Completa ambos campos.", "err");
+      if(p1 !== p2) return msg("Las contraseñas no coinciden.", "err");
+      if(p1.length < 8) return msg("Mínimo 8 caracteres.", "err");
+
+      msg("Guardando…");
+      const { error } = await supabase.auth.updateUser({ password: p1 });
+      if(error) return msg("Error: " + error.message, "err");
+
+      msg("✅ Contraseña actualizada. Te mandaré al login.", "ok");
+      setTimeout(()=> window.location.href = new URL("index.html", cfg.SITE_URL).toString(), 900);
+    };
+  </script>
+</body>
+</html>
