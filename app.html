@@ -955,8 +955,7 @@
 
         const { data, error } = await supabase.rpc("get_stats", {
           p_faculty_id: faculty,
-          p_program_id: program,
-          p_min_k: k
+          p_program_id: program
         });
 
         if(error){
