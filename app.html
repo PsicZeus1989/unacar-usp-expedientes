@@ -947,7 +947,7 @@
         setMsg("statsMsg","Cargando…");
         const faculty = $("stF").value ? Number($("stF").value) : null;
         const program = $("stP").value ? Number($("stP").value) : null;
-                const { data, error } = await supabase.rpc("get_stats", {
+const { data, error } = await supabase.rpc("get_stats", {
           p_faculty_id: faculty,
           p_program_id: program
         });
