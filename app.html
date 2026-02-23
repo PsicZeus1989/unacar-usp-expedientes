@@ -214,8 +214,26 @@
         </div>
 
         <div class="col-12">
-          <pre id="statsOut" style="background:#0b1020;color:#e5e7eb;padding:12px;border-radius:12px;overflow:auto;max-height:360px;"></pre>
-          <div class="muted">Nota: el JEFE solo recibe agregados (sin matrículas ni nombres).</div>
+          <div class="row">
+            <div class="col-12">
+              <div id="statsCards" class="row"></div>
+            </div>
+            <div class="col-12">
+              <div class="row">
+                <div class="col-6"><div class="panel"><b>Por sexo</b><div id="tblSex"></div></div></div>
+                <div class="col-6"><div class="panel"><b>Por facultad</b><div id="tblFaculty"></div></div></div>
+                <div class="col-6"><div class="panel"><b>Por programa educativo</b><div id="tblProgram"></div></div></div>
+                <div class="col-6"><div class="panel"><b>Por motivo (sesiones)</b><div id="tblReason"></div></div></div>
+                <div class="col-6"><div class="panel"><b>Por canalización (sesiones)</b><div id="tblReferral"></div></div></div>
+                <div class="col-6"><div class="panel"><b>Por servicio (sesiones)</b><div id="tblService"></div></div></div>
+              </div>
+            </div>
+            <div class="col-12">
+              <button class="btn2" id="btnToggleJson">Mostrar JSON</button>
+              <pre id="statsOut" class="hide" style="background:#0b1020;color:#e5e7eb;padding:12px;border-radius:12px;overflow:auto;max-height:360px;margin-top:10px;"></pre>
+              <div class="muted">Nota: el JEFE solo recibe agregados (sin matrículas ni nombres). Se ocultan categorías con conteo &lt; k.</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
