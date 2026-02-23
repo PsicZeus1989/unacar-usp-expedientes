@@ -204,11 +204,7 @@
           <label>Programa</label>
           <select id="stP"></select>
         </div>
-        <div class="col-2">
-          <label>k mínimo</label>
-          <input id="stK" type="number" min="2" value="5"/>
-        </div>
-        <div class="col-4" style="display:flex;align-items:flex-end;gap:10px;">
+<div class="col-4" style="display:flex;align-items:flex-end;gap:10px;">
           <button class="btn" id="btnLoadStats">Cargar</button>
           <span id="statsMsg" class="muted"></span>
         </div>
@@ -231,7 +227,7 @@
             <div class="col-12">
               <button class="btn2" id="btnToggleJson">Mostrar JSON</button>
               <pre id="statsOut" class="hide" style="background:#0b1020;color:#e5e7eb;padding:12px;border-radius:12px;overflow:auto;max-height:360px;margin-top:10px;"></pre>
-              <div class="muted">Nota: el JEFE solo recibe agregados (sin matrículas ni nombres). Se ocultan categorías con conteo &lt; k.</div>
+              <div class="muted">Nota: el JEFE solo recibe agregados (sin matrículas ni nombres). Conteos por alumnos únicos y sesiones (sin k mínimo).</div>
             </div>
           </div>
         </div>
@@ -951,9 +947,7 @@
         setMsg("statsMsg","Cargando…");
         const faculty = $("stF").value ? Number($("stF").value) : null;
         const program = $("stP").value ? Number($("stP").value) : null;
-        const k = Number($("stK").value || 5);
-
-        const { data, error } = await supabase.rpc("get_stats", {
+                const { data, error } = await supabase.rpc("get_stats", {
           p_faculty_id: faculty,
           p_program_id: program
         });
