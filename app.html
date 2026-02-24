@@ -204,21 +204,11 @@
           <label>Programa</label>
           <select id="stP"></select>
         </div>
-
-        <div class="col-3">
-          <label>Desde</label>
-          <input id="stFrom" type="date" />
+        <div class="col-2">
+          <label>k mínimo</label>
+          <input id="stK" type="number" min="2" value="5"/>
         </div>
-        <div class="col-3">
-          <label>Hasta</label>
-          <input id="stTo" type="date" />
-        </div>
-        <div class="col-3" style="display:flex;align-items:flex-end;gap:10px;">
-          <label style="width:100%;">&nbsp;</label>
-          <button class="btn2" id="btnAllTime" type="button">Todo el tiempo</button>
-          <span class="muted" id="rangeHint"></span>
-        </div>
-<div class="col-4" style="display:flex;align-items:flex-end;gap:10px;">
+        <div class="col-4" style="display:flex;align-items:flex-end;gap:10px;">
           <button class="btn" id="btnLoadStats">Cargar</button>
           <span id="statsMsg" class="muted"></span>
         </div>
@@ -961,6 +951,8 @@
         setMsg("statsMsg","Cargando…");
         const faculty = $("stF").value ? Number($("stF").value) : null;
         const program = $("stP").value ? Number($("stP").value) : null;
+        const k = Number($("stK").value || 5);
+
         const { data, error } = await supabase.rpc("get_stats", {
           p_faculty_id: faculty,
           p_program_id: program
