@@ -209,7 +209,7 @@
           <input id="stK" type="number" min="2" value="5"/>
         </div>
         <div class="col-4" style="display:flex;align-items:flex-end;gap:10px;">
-          <button class="btn" id="btnLoadStats">Cargar</button>
+          <button class="btn" id="btnLoadStats">Cargar</button> <button class="btn2" id="btnDiag" type="button">Diagnóstico</button>
           <span id="statsMsg" class="muted"></span>
         </div>
 
@@ -240,7 +240,38 @@
 
   </div>
 
-  <script src="config.js"></script>
+  <script src="config.js">
+      $("btnDiag").onclick = async ()=>{
+        setMsg("statsMsg","Diagnosticando…");
+        const out = $("diagOut");
+        const lines = [];
+        try{
+          const s1 = await supabase.from("students").select("id", { count: "exact", head: true });
+          lines.push(`students visibles: ${s1.count ?? "?"}${s1.error ? " (ERROR: "+s1.error.message+")" : ""}`);
+
+          const c1 = await supabase.from("cases").select("id", { count: "exact", head: true });
+          lines.push(`cases visibles: ${c1.count ?? "?"}${c1.error ? " (ERROR: "+c1.error.message+")" : ""}`);
+
+          const se1 = await supabase.from("sessions").select("id", { count: "exact", head: true });
+          lines.push(`sessions visibles: ${se1.count ?? "?"}${se1.error ? " (ERROR: "+se1.error.message+")" : ""}`);
+
+          const rpc = await supabase.rpc("get_stats", { p_faculty_id: null, p_program_id: null, p_from: null, p_to: null });
+          if(rpc.error){
+            lines.push(`RPC get_stats: ERROR: ${rpc.error.message}`);
+          }else{
+            const sum = (rpc.data?.summary && Array.isArray(rpc.data.summary)) ? (rpc.data.summary[0]||{}) : (rpc.data?.summary||{});
+            lines.push(`RPC get_stats OK. summary: ${JSON.stringify(sum)}`);
+          }
+
+          setMsg("statsMsg","✅ Diagnóstico listo.","ok");
+        }catch(e){
+          lines.push("EXCEPCIÓN: "+(e?.message||String(e)));
+          setMsg("statsMsg","Error en diagnóstico.","err");
+        }
+        if(out) out.textContent = lines.join(" | ");
+      };
+
+</script>
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
@@ -967,6 +998,37 @@
         $("statsOut").textContent = JSON.stringify(data, null, 2);
       };
     }
-  </script>
+  
+      $("btnDiag").onclick = async ()=>{
+        setMsg("statsMsg","Diagnosticando…");
+        const out = $("diagOut");
+        const lines = [];
+        try{
+          const s1 = await supabase.from("students").select("id", { count: "exact", head: true });
+          lines.push(`students visibles: ${s1.count ?? "?"}${s1.error ? " (ERROR: "+s1.error.message+")" : ""}`);
+
+          const c1 = await supabase.from("cases").select("id", { count: "exact", head: true });
+          lines.push(`cases visibles: ${c1.count ?? "?"}${c1.error ? " (ERROR: "+c1.error.message+")" : ""}`);
+
+          const se1 = await supabase.from("sessions").select("id", { count: "exact", head: true });
+          lines.push(`sessions visibles: ${se1.count ?? "?"}${se1.error ? " (ERROR: "+se1.error.message+")" : ""}`);
+
+          const rpc = await supabase.rpc("get_stats", { p_faculty_id: null, p_program_id: null, p_from: null, p_to: null });
+          if(rpc.error){
+            lines.push(`RPC get_stats: ERROR: ${rpc.error.message}`);
+          }else{
+            const sum = (rpc.data?.summary && Array.isArray(rpc.data.summary)) ? (rpc.data.summary[0]||{}) : (rpc.data?.summary||{});
+            lines.push(`RPC get_stats OK. summary: ${JSON.stringify(sum)}`);
+          }
+
+          setMsg("statsMsg","✅ Diagnóstico listo.","ok");
+        }catch(e){
+          lines.push("EXCEPCIÓN: "+(e?.message||String(e)));
+          setMsg("statsMsg","Error en diagnóstico.","err");
+        }
+        if(out) out.textContent = lines.join(" | ");
+      };
+
+</script>
 </body>
 </html>
